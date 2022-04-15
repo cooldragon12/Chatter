@@ -1,0 +1,1 @@
+export {default as LoginValidation} from './schema/login'

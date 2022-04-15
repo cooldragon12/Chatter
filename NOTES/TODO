@@ -1,0 +1,9 @@
+<< Frontend || Chat_App >>
+- create actions for logging in
+- Done(make the api / return json nicer)
+- Learn more about the reducer and context
+- token generator
+
+<< Backend || Chat_App_... >>
+- urls need to specify
+- token giving for authentication (can doo other way to connect and manage the http request)
