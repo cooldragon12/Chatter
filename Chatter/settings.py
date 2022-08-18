@@ -39,11 +39,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'Chat_App_Backend',
-    'Chat_App.apps'
+    'corsheaders',
+    'Chat_Account',
+    'Chat_Backend',
+    
 ]
 
 MIDDLEWARE = [
+    # 'corsheaders.middleware.CorsMiddleware'
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -53,7 +56,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-AUTH_USER_MODEL = 'Chat_App_Backend.User'
+AUTH_USER_MODEL = 'Chat_Account.User'
 
 ROOT_URLCONF = 'Chatter.urls'
 
@@ -77,13 +80,12 @@ TEMPLATES = [
 
 # Channels
 ASGI_APPLICATION = 'Chatter.asgi.application'
-CHANNEL_LAYER = {
+CHANNEL_LAYERS = {
     "default":{
-        "BACKEND":"channels_redis.RedisChannelLayer",
-        "CONFIG":{
-            "hosts":{('127.0.0.1', 6379)},
-        },
-        "ROUTING":"routing.application",
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                "hosts": [("127.0.0.1", 6379)],
+            },
     },
 }
 
@@ -100,15 +102,21 @@ DATABASES = {
 # Rest Framework
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        
+        'Chat_Account.authentication.CookieAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
-    )
+    ),
+    'DEFAULT_PERMISSION_CLASSES':[
+        'rest_framework.permissions.AllowAny',
+    ]
 }
+
+CORS_ORIGIN_ALLOW_ALL = True
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=14*24*60),
+    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=6*24*60),
     'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=30),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
@@ -123,10 +131,10 @@ SIMPLE_JWT = {
 
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type',
-
-    'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
-    'SLIDING_TOKEN_LIFETIME': datetime.timedelta(minutes=5),
-    'SLIDING_TOKEN_REFRESH_LIFETIME': datetime.timedelta(days=1),
+    'AUTH_COOKIE_ACCESS':'__access',
+    'AUTH_COOKIE_REFRESH':'__refresh',
+    'AUTH_COOKIE_HTTP_ONLY':True,
+    'AUTH_COOKIE_PATH':'/'
 }
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
