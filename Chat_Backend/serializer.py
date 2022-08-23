@@ -10,26 +10,33 @@ from .models import Room, User, Message
 def get_room(roomId):
     room = get_object_or_404(Room, id=roomId)
     return room
-class RoomInfoSerializer(serializers.ModelSerializer):
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username']
+
+class RoomOpSerializer(serializers.ModelSerializer):
     """Room Info"""
+    id = serializers.IntegerField(required=False)
+    host = UserSerializer(read_only=True)
+    code = serializers.CharField(required=False)
+    created_on = serializers.CharField(required=False)
+    
     class Meta:
         model = Room
-        fields = ['id', 'name', 'code', 'host', 'created_on']
-        
+        fields = ['id', 'name', 'code', 'host', 'max_users','created_on']
+
 class SelfUserSerializer(serializers.ModelSerializer):
-    members_in_room = RoomInfoSerializer(many=True, read_only=True)
+    members_in_room = RoomOpSerializer(many=True, read_only=True)
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'members_in_room']
         read_only_field = ['id']
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['id', 'username', 'email']
-
+        
 class RoomUtilSerializer(serializers.Serializer):
     """For Creating New Room"""
-    host = SelfUserSerializer()
+    host = serializers.CharField()
     name = serializers.CharField()
     max_users = serializers.IntegerField()
     
@@ -49,7 +56,7 @@ class MessageSerializer(serializers.Serializer):
     content = serializers.CharField()
     user = serializers.CharField()
     timestamp = serializers.DateTimeField()
-    
+    # Create new Message
     def create(self, validated_data):
         user = User.objects.filter(username=validated_data["user"])[0]
         msg = Message.objects.create(
@@ -59,27 +66,42 @@ class MessageSerializer(serializers.Serializer):
         )
         room = get_room(validated_data['roomId'])
         room.messages.add(msg)
-class UserJoinSerializer(serializers.Serializer):
-    username = serializers.CharField()
-    code = serializers.CharField(max_length=16)
+    # And get the messages
+class UserOperSerializer(serializers.Serializer):
+    username = serializers.CharField(read_only=True)
 
-    def update(self, validated_data):
-        code = validated_data['code']
-        user = get_object_or_404(User, username=validated_data['username'])
-        room = get_object_or_404(Room, code=code)
-        room.members.add(user)
+    def join(self, instance, validated_data):
+        user = get_object_or_404(User, username=validated_data)
+        instance.members.add(user)
+        instance.save()
         
-        return {'detail':'Sucessfully joined'}
-    def validate(self, attrs):
+        return instance
+    def leave(self, instance, validated_data):
+        user = get_object_or_404(User, username=validated_data)
+        instance.members.remove(user)
+        instance.save()
+        return instance
+    
+    # Need a little imporvement here
+    # The validated_data cannot find
+    def do_join(self,instance,user):
         
-        if Room.objects.filter(members__username = attrs['username']).exists():
-            raise serializers.ValidationError({'error':"You've already joined"})
-        try:
-            Room.objects.get(code=attrs['code'])
-        except ObjectDoesNotExist:
-            raise serializers.ValidationError({'error':"Room doesn't exist"})
-        
-        return attrs
+        self.join(instance,user)
+    def do_leave(self, instance,user):
+        self.leave(instance, user)
+
+
+    # def validate(self, attrs):
+    #     # if Room.objects.filter(members__username = attrs['username']).exists():
+    #     #     raise serializers.ValidationError({'error':"You've already joined"})
+    #     # try:
+    #     #     Room.objects.get(code=attrs['code'])
+    #     # except ObjectDoesNotExist:
+    #     #     raise serializers.ValidationError({'error':"Room doesn't exist"})
+    #     return attrs
+
+        # return attrs
+    
 # Suth Serializers 
 # class LoginSerializer(TokenObtainPairSerializer):
         

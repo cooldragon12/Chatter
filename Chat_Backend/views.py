@@ -3,14 +3,15 @@ from django.shortcuts import get_object_or_404, get_list_or_404
 
 
 from rest_framework.views import APIView
-from rest_framework.generics import ListAPIView, RetrieveAPIView,CreateAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView,CreateAPIView, GenericAPIView
 from rest_framework import viewsets, filters, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.response import Response
 
-from .serializer import RegisterSerializer, RoomSerializer, UserJoinSerializer, UserSerializer, RoomUtilSerializer
+from .serializer import RoomSerializer, UserOperSerializer, RoomUtilSerializer
 from .models import Room,User, Message
+from .mixins import JoinRoomMixin, LeaveRoomMixin
 
 
 
@@ -21,6 +22,12 @@ def check_code_exist(code):
     if Room.objects.filter(code = code).exists():
         return True
     return False
+"""
+NOTE: 
+You can make a view using mixin to make it easy
+"""
+
+
 
 # Create your views here.
 class RoomView(ListAPIView):
@@ -33,7 +40,7 @@ class RoomDetailsView(RetrieveAPIView):
     permission_classes = (IsAuthenticated,)
     lookup_field = 'search_id'
     
-class RoomCreateView(APIView):
+class RoomCreateView(GenericAPIView):
     serializer_class = RoomUtilSerializer
     permission_classes = (IsAuthenticated,)
     def post(self, request, format=None):
@@ -45,18 +52,13 @@ class RoomCreateView(APIView):
             return Response(RoomSerializer(room).data, status=status.HTTP_201_CREATED)
 
         return Response({'Bad Request': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
-    
-class RoomJoinView(APIView):
-    serializer_class = UserJoinSerializer
+
+
+
+class RoomOperationView(viewsets.GenericViewSet, JoinRoomMixin, LeaveRoomMixin):
+    serializer_class = UserOperSerializer
     permission_classes = (IsAuthenticated,)
-    def put(self, request, format=None):
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            response = serializer.update(validated_data=serializer.data)
-            return Response(data = response ,status=status.HTTP_202_ACCEPTED)
-        return Response({'Bad Request': 'Invalid Code'}, status=status.HTTP_400_BAD_REQUEST)
-
-
-
-
-    
+    queryset = Room.objects.all()
+    lookup_field = "code"
+    def get_queryset(self):
+        return self.queryset
