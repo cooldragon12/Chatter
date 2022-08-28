@@ -25,7 +25,7 @@ class JoinRoomMixin:
         instance = self.get_object() # get the room, user will join in if exist
         serializer = self.get_serializer(instance=request.data, data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = get_object_or_404(User, username=serializer.data.get('username'))
+        user = get_object_or_404(User, username=request.COOKIES.get('user').id)
         if instance in user.members_in_room.all():
             # If the room is one of the users joined in
             # Then the user will not able to join

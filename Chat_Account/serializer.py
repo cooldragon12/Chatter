@@ -3,18 +3,20 @@ from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.core.exceptions import ObjectDoesNotExist
-from Chat_Backend.serializer import SelfUserSerializer
+
+from Chat_Backend.serializer import UserSerializer
 from .models import User
 
+
+
 class LoginSerializer(TokenObtainPairSerializer):
-        
     def validate(self, attrs):
         data = super().validate(attrs)
 
         refresh = self.get_token(self.user)
 
-        data['user'] = SelfUserSerializer(self.user).data
-        data['access'] = str(refresh.access_token)
+        data['user'] = UserSerializer(self.user).data
+        data['__access'] = str(refresh.access_token)
 
         
         return data

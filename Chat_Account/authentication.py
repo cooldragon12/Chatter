@@ -6,7 +6,7 @@ class CookieAuthentication(JWTAuthentication):
         header = self.get_header(request)
 
         if header is None:
-            raw_token =request.COOKIES.get('__access') or None
+            raw_token = request.COOKIES.get('__access') or None
         else:
             raw_token = self.get_raw_token(header)
         if raw_token is None:

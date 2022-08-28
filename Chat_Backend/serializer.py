@@ -1,9 +1,5 @@
 from django.shortcuts import get_object_or_404
-
 from rest_framework import serializers
-from django.contrib.auth.password_validation import validate_password
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from django.core.exceptions import ObjectDoesNotExist
 
 from .models import Room, User, Message
 
@@ -11,65 +7,10 @@ def get_room(roomId):
     room = get_object_or_404(Room, id=roomId)
     return room
 
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['id', 'username']
-
-class RoomOpSerializer(serializers.ModelSerializer):
-    """Room Info"""
-    id = serializers.IntegerField(required=False)
-    host = UserSerializer(read_only=True)
-    code = serializers.CharField(required=False)
-    created_on = serializers.CharField(required=False)
-    
-    class Meta:
-        model = Room
-        fields = ['id', 'name', 'code', 'host', 'max_users','created_on']
-
-class SelfUserSerializer(serializers.ModelSerializer):
-    members_in_room = RoomOpSerializer(many=True, read_only=True)
-    class Meta:
-        model = User
-        fields = ['id', 'username', 'email', 'members_in_room']
-        read_only_field = ['id']
-        
-class RoomUtilSerializer(serializers.Serializer):
-    """For Creating New Room"""
-    host = serializers.CharField()
-    name = serializers.CharField()
-    max_users = serializers.IntegerField()
-    
-    
-class RoomSerializer(serializers.ModelSerializer):
-    """Full Detail in Room"""
-    host = UserSerializer(many=False)
-    members_in_room = UserSerializer(many=True, read_only=True)
-    class Meta:
-        model = Room
-        fields = ('id', 'name', 'code', 'max_users', 'host', 'created_on', 'members_in_room')
-        read_only_field = ('id', 'code')
-
-
-# MessageSerializer
-class MessageSerializer(serializers.Serializer):
-    content = serializers.CharField()
-    user = serializers.CharField()
-    timestamp = serializers.DateTimeField()
-    # Create new Message
-    def create(self, validated_data):
-        user = User.objects.filter(username=validated_data["user"])[0]
-        msg = Message.objects.create(
-            user=user,
-            content=validated_data['content'],
-            timestamp=validated_data['timestamp']
-        )
-        room = get_room(validated_data['roomId'])
-        room.messages.add(msg)
-    # And get the messages
-class UserOperSerializer(serializers.Serializer):
-    username = serializers.CharField(read_only=True)
-
+class UserOperation:
+    """
+        Operation of User in the room
+    """
     def join(self, instance, validated_data):
         user = get_object_or_404(User, username=validated_data)
         instance.members.add(user)
@@ -85,10 +26,64 @@ class UserOperSerializer(serializers.Serializer):
     # Need a little imporvement here
     # The validated_data cannot find
     def do_join(self,instance,user):
-        
         self.join(instance,user)
     def do_leave(self, instance,user):
         self.leave(instance, user)
+class BaseModelSerializer(serializers.ModelSerializer):
+    def __init__(self, *args, **kwargs):
+        exclude_fields = kwargs.pop('exclude_fields', None)
+        # include_only_fields = kwargs.pop('include_only_fields', None)
+        super(BaseModelSerializer, self).__init__(*args, **kwargs)
+
+        if exclude_fields:
+            # to remove some other fields that been indicated
+            for field_name in exclude_fields:
+                self.fields.pop(field_name)
+        
+class UserSerializer(BaseModelSerializer):
+    class Meta:
+        model = User
+        fields = '__all__'
+class MessageSerializer(serializers.Serializer):
+    content = serializers.CharField()
+    user = serializers.CharField()
+    timestamp = serializers.DateTimeField()
+    # Create new Message
+    def create(self, validated_data):
+        user = User.objects.filter(username=validated_data["user"])[0]
+        msg = Message.objects.create(
+            user=user,
+            content=validated_data['content'],
+            timestamp=validated_data['timestamp']
+        )
+        room = get_room(validated_data['roomId'])
+        room.messages.add(msg)
+    # And get the messages
+
+class RoomSerializer(BaseModelSerializer,UserOperation):
+    """General Room Serializer
+    
+    NOTE: 
+    To Remove other fields, in intialization in the parameter just put `exlude_fields` 
+    then enter the string of the variable in the list.
+    """
+
+    host = UserSerializer(read_only=True)
+    messages = MessageSerializer(many=True, read_only=True)
+    username = serializers.CharField(read_only=True, required=False)
+
+    class Meta:
+        model = Room
+        fields =  ['search_id', 'host','name', 'max_users', 'code', 'created_on', 'members','messages','username']
+    def create(self, validated_data):
+        user = get_object_or_404(User, id=validated_data.get('host'))
+        room = Room(name=validated_data.get('name'),host=user,max_users=validated_data.get('max_users'))
+        room.members.add(user)
+        room.save()
+
+
+    
+# MessageSerializer
 
 
     # def validate(self, attrs):
@@ -102,43 +97,3 @@ class UserOperSerializer(serializers.Serializer):
 
         # return attrs
     
-# Suth Serializers 
-# class LoginSerializer(TokenObtainPairSerializer):
-        
-#     def validate(self, attrs):
-#         data = super().validate(attrs)
-
-#         refresh = self.get_token(self.user)
-
-#         data['user'] = SelfUserSerializer(self.user).data
-#         data['access'] = str(refresh.access_token)
-
-        
-#         return data
-# class RegisterSerializer(serializers.ModelSerializer):
-#     # REQUIRED PARAMETER
-#     email = serializers.EmailField(required=True, write_only=True, max_length=128)
-#     username = serializers.CharField(required=True, max_length=50)
-#     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
-#     password2 = serializers.CharField(write_only= True, required=True)
-
-#     class Meta:
-#         model = User
-#         fields = ['id', 'username', 'email', 'password', 'password2']
-#     def validate(self, attrs):
-#         if attrs['password'] != attrs['password2']:
-#             raise serializers.ValidationError({'password':"Password does not match"})
-#         return attrs
-#     def create(self, validated_data):
-#         try:
-#             user = User.objects.get(email=validated_data['email'])
-#         except ObjectDoesNotExist:
-#             user = User.objects.create(
-#                 username = validated_data["username"],
-#                 email = validated_data["email"],
-#             )
-#             user.set_password(validated_data["password"])
-#             user.save()
-
-#         return user
-        
