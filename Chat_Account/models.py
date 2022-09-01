@@ -19,9 +19,7 @@ class User(AbstractUser):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'password']
-    @classmethod
-    def get_number_user(self) -> int:
-        pass
+    
     def __str__(self) -> str:
         return str(self.username)
     

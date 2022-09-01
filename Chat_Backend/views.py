@@ -4,8 +4,8 @@ from django.shortcuts import get_object_or_404, get_list_or_404
 
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView, RetrieveAPIView,CreateAPIView
-from rest_framework import viewsets, filters, status
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.response import Response
 

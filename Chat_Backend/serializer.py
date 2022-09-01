@@ -39,11 +39,12 @@ class BaseModelSerializer(serializers.ModelSerializer):
             # to remove some other fields that been indicated
             for field_name in exclude_fields:
                 self.fields.pop(field_name)
-        
+    
 class UserSerializer(BaseModelSerializer):
+    # rooms = RoomSerializer(exlude_fields=['host', 'messages', 'username'])
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ['username', 'is_active','email', 'date_joined','status','is_active']
 class MessageSerializer(serializers.Serializer):
     content = serializers.CharField()
     user = serializers.CharField()

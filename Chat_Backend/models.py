@@ -57,7 +57,9 @@ class Room(models.Model):
     def change_max_users(self, number):
         self.max_users= number
         self.save()
-    
+    @classmethod
+    def get_total_members(self):
+        return self.members.count()
     
     
     

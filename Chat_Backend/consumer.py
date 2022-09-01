@@ -1,9 +1,8 @@
 
 from django.shortcuts import get_object_or_404
-from channels.generic.websocket import AsyncWebsocketConsumer, AsyncJsonWebsocketConsumer
-from asgiref.sync import sync_to_async
-import json
-from .serializer import MessageSerializer
+from channels.generic.websocket import AsyncJsonWebsocketConsumer
+from channels.db import database_sync_to_async
+from .serializer import MessageSerializer, UserSerializer
 from .models import Message, Room
 from Chat_Account.models import User
 """
@@ -16,17 +15,18 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.room_group_name = f'chat-{self.room_name}'
-        # self.user = self.scope['user']
-        
+        self.user = self.scope['user']
         # Join room group / More like connecting to the group
-        await self.channel_layer.group_add(
+        self.channel_layer.group_add(
             self.room_group_name,
             self.channel_name
         )
         
-        # await self.update_user_online(self.user)
-        await self.accept()
+        print(self.channel_name)
+        print('created a group')
+        await self.update_user_online(self.user)
     
+        await self.accept()
     async def disconnect(self, close_code):
         
         await self.channel_layer.group_discard(
@@ -37,8 +37,9 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         await self.update_user_offline(self.user)
     
     # Message Related =================================================
-    async def recieve_json(self, content:str): # Recieve by the server
+    async def receive_json(self, content, **kwargs): # Recieve by the server
         # Directory of Commands
+        print("Recievec")
         await self.commands[content['command']](self,content)
 
     # Sending Messages to the client
@@ -64,7 +65,8 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
     def new_message(self, data:dict): # To save in database
         # Parsing the data then send message to group layer
         """Parsing the new messege"""
-        author = data["from"]
+
+        
         new_msg = MessageSerializer()
         
         new_msg.create(
@@ -89,19 +91,19 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             }
         )
       
-    
-    async def update_user_online(self, user):
-        await sync_to_async(User.objects.filter(pk=user.pk).update(status=User.STATUS_CHOICES[0]))
+    @database_sync_to_async
+    def update_user_online(self, user):
+        return User.objects.filter(pk=user.pk).update(status=User.STATUS_CHOICES[0])
 
-    
-    async def update_user_offline(self, user):
-        await sync_to_async(User.objects.filter(pk=user.pk).update(status=User.STATUS_CHOICES[1]))
+    @database_sync_to_async
+    def update_user_offline(self, user):
+        return User.objects.filter(pk=user.pk).update(status=User.STATUS_CHOICES[1])
     
     commands = {
         'messages':fetch_messages,
         'new_message':new_message,
     }
-    @sync_to_async
+    @database_sync_to_async
     def get_10_messages(self,roomId):
         room = get_object_or_404(Room, search_id=roomId)
         return room.messages.order_by("-timestamp").all()[:10]  
