@@ -7,11 +7,10 @@ NOTE: The structure of the mixin will be base on built-in mixin to make it easie
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.settings import api_settings
 from rest_framework.decorators import action
-from django.conf import settings
+from django.contrib.auth import get_user_model
 
-from .models import User
+User = get_user_model()
 
 class JoinRoomMixin:
     """

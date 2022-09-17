@@ -48,18 +48,26 @@ class UserSerializer(BaseModelSerializer):
 class MessageSerializer(serializers.Serializer):
     content = serializers.CharField()
     user = serializers.CharField()
+    room = serializers.CharField()
     timestamp = serializers.DateTimeField()
     # Create new Message
     def create(self, validated_data):
         user = User.objects.filter(username=validated_data["user"])[0]
         msg = Message.objects.create(
             user=user,
-            content=validated_data['content'],
-            timestamp=validated_data['timestamp']
+            content=validated_data['content']
         )
-        room = get_room(validated_data['roomId'])
+        room = get_room(validated_data['room'])
         room.messages.add(msg)
-    # And get the messages
+    def __init__(self, *args, **kwargs):
+        exclude_fields = kwargs.pop('exclude_fields', None)
+        # include_only_fields = kwargs.pop('include_only_fields', None)
+        super(MessageSerializer, self).__init__(*args, **kwargs)
+
+        if exclude_fields:
+            # to remove some other fields that been indicated
+            for field_name in exclude_fields:
+                self.fields.pop(field_name)
 
 class RoomSerializer(BaseModelSerializer,UserOperation):
     """General Room Serializer

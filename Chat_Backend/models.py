@@ -28,7 +28,7 @@ class Message(models.Model):
     content = models.TextField()
     user = models.ForeignKey(to=User, related_name='author_message', on_delete=models.CASCADE, editable=False)
     timestamp = models.DateTimeField(auto_now_add=True)
-
+    room = models.ForeignKey('Room', related_name='room_message')
     def edit_message(self, new_message):
         self.content = new_message
         self.save()
@@ -47,7 +47,7 @@ class Room(models.Model):
     created_on =  models.DateTimeField(auto_now_add=True)
     # Room 
     members = models.ManyToManyField(User, blank=True, related_name="members_in_room")
-    messages = models.ManyToManyField(Message, blank=True)
+    
     
     def __str__(self):
         return self.name

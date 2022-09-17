@@ -10,6 +10,9 @@ NOTE: Can't connect to the socket
 
 
 """
+def get_user(user_id):
+    return get_object_or_404(User, id=user_id)
+
 class ChatConsumer(AsyncJsonWebsocketConsumer):
     
     async def connect(self):
@@ -24,7 +27,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         
         print(self.channel_name)
         print('created a group')
-        await self.update_user_online(self.user)
+        # await self.update_user_online(self.user)
     
         await self.accept()
     async def disconnect(self, close_code):
@@ -39,12 +42,12 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
     # Message Related =================================================
     async def receive_json(self, content, **kwargs): # Recieve by the server
         # Directory of Commands
-        print("Recievec")
+        await self.channel_layer.group_send(self.room_group_name, content)
         await self.commands[content['command']](self,content)
 
     # Sending Messages to the client
     async def send_message(self, message): # send by server to client
-        self.send_json(content=message)
+        await self.send_json(content=message)
 
     # Fetching the message from server
     async def fetch_messages(self, data:dict):
@@ -58,7 +61,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             'command': 'messages',
             'messages': msgs_list,
         }
-        self.send_new_message(content)
+        self.send_message(content)
 
     
     # New Message Save to database then back to user ========================
@@ -67,29 +70,21 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         """Parsing the new messege"""
 
         
-        new_msg = MessageSerializer()
+        new_msg = MessageSerializer(data={
+            'user':self.user.id,
+            'content':data["content"],
+            'room':data["roomId"]
+        }, exclude_fields=['timestamp'])
+        new_msg.is_valid()
         
-        new_msg.create(
-            user=author,
-            content=data["content"],
-            room = data["roomId"]
-            )
+        # database_sync_to_async(new_msg.create(new_msg.data))
         
-        content = {
-            'command' : 'new_message',
-            'message' : new_msg.data
-        }
-        return self.send_new_message(content)
+        return self.send_message(new_msg.data)
         
 
-    async def send_new_message(self,message:str):
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                'type': 'chat_message',
-                'message': message,
-            }
-        )
+    # async def send_new_message(self,message):
+    #     print("sent")
+    #     await self.send_message()
       
     @database_sync_to_async
     def update_user_online(self, user):

@@ -2,6 +2,7 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import AccessToken
 from django.core.exceptions import ObjectDoesNotExist
 from .models import User
 
@@ -11,7 +12,7 @@ class LoginSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
         refresh = self.get_token(self.user)
-        data['access'] = str(refresh.access_token)
+        # data['user'] = str(AccessToken(refresh).get('user_id'))
 
         
         return data
