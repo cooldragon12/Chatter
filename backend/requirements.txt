@@ -1,0 +1,10 @@
+## The following requirements were added by pip freeze:
+channels-redis
+channels
+Django
+django-cors-headers
+djangorestframework
+djangorestframework-simplejwt
+uvicorn
+cryptography
+psycopg2

@@ -1,0 +1,30 @@
+{
+	
+	"folders": [
+		{
+			"name": "Frontend",
+			"path": "frontend"
+		},
+		{
+			"name": "Backend",
+			"path": "backend"
+		},
+		{
+			"name": "Chatter",
+			"path": ".",
+		}
+
+	],
+
+	"settings": {
+		"python.terminal.activateEnvInCurrentTerminal": true,
+		"python.envFile": "${workspaceFolder}/env",
+		"terminal.integrated.defaultProfile.windows": "Git Bash",
+		"terminal.integrated.localEchoStyle": "#ff0000",
+		"python.defaultInterpreterPath": "python",
+		"tailwindCSS.includeLanguages": {
+			"typescript": "tsx"
+		},
+		"typescript.tsdk": "Frontend\\node_modules\\typescript\\lib",
+	},
+}
