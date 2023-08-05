@@ -26,5 +26,8 @@
 			"typescript": "tsx"
 		},
 		"typescript.tsdk": "Frontend\\node_modules\\typescript\\lib",
+		"[python]": {
+			"editor.defaultFormatter": "ms-python.black-formatter"
+		},
 	},
 }

@@ -1,6 +1,5 @@
 from django.urls import path,re_path
 from .views import  RoomView,ping
-from rest_framework_simplejwt.views import TokenRefreshView
 
 
 """ URL Patterns for Backend

@@ -34,7 +34,7 @@ services:
     build: 
       context: ../backend
       dockerfile: Dockerfile
-    command: python manage.py runserver 0.0.0.0:8000
+    command: uvicorn core.asgi:application --host 0.0.0.0 --port 8000 --workers 2 --log-level debug --reload
     volumes:
       - ../backend:/usr/src/app/backend
     ports:
@@ -44,7 +44,20 @@ services:
       
     depends_on:
       - db
-    
+  frontend_app:
+    container_name: react_app
+    build: 
+      context: ../frontend
+      dockerfile: Dockerfile
+    command: npm run dev
+    volumes:
+      - ../frontend:/usr/src/app/frontend
+    ports:
+      - "80:3000"
+    env_file:
+      - ./.env
+    depends_on:
+      - backend_app
 volumes:
   pgdata:
   redisdata:

@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.utils.translation import gettext_lazy as _
-from .encryption import Encryption, createPrivateKeyRSA
+from .encryption import Encryption
 
 import random
 import string
@@ -12,9 +12,11 @@ class UserManager(BaseUserManager):
         """
         Create and save a user with the given email and password.
         """
-        private_key = createPrivateKeyRSA(512)
-        serilized_private_key = Encryption(privateKey=private_key, publicKey=private_key.public_key())
-        user = self.model(private_key=serilized_private_key.serializePrivateKey()[1], public_key=serilized_private_key.serializePublicKey()[1],**extra_fields)
+        private_key = Encryption.createPrivateKeyRSA(512)
+        serilized_private_key = Encryption(privateKey=private_key)
+        user = self.model(private_key=serilized_private_key.serializePrivateKey()[1], 
+                          public_key=serilized_private_key.serializePublicKey()[1],
+                          **extra_fields)
         user.set_password(password)
         user.save()
         return user

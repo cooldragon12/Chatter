@@ -1,57 +1,61 @@
 
-from rest_framework import status
-from rest_framework.generics import CreateAPIView
+import stat
+from sys import exception
+from django.contrib.auth import login, logout
+
+from django.http import JsonResponse
+from rest_framework import status, exceptions
+from rest_framework.views import APIView
+from rest_framework.generics import CreateAPIView, GenericAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .serializer import RegisterSerializer
+from .serializer import LoginSerializer, RegisterSerializer, UserSerializer
 from .models import User
 # Create your views here.
-# class ObtainCookieTokenView(TokenObtainPairView):
-#     permission_classes = (AllowAny,)
-#     def post(self, request, *args, **kwargs):
-#         response = super().post(request, *args, **kwargs)
-        
-#         response.set_cookie(
-#             key=settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'],
-#             expires=settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'],
-#             value=response.data['refresh'],
-#             # secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
-#             httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
-#             # samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
-#             # domain=settings.ALLOWED_HOSTS[2],
-#             path=settings.SIMPLE_JWT['AUTH_COOKIE_PATH']
-#         )
-#         response.set_cookie(
-#             key=settings.SIMPLE_JWT['AUTH_COOKIE_ACCESS'],
-#             expires=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'],
-#             value=response.data['access'],
-#             # secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
-#             httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
-#             # samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
-#             # domain=settings.ALLOWED_HOSTS[2],
-#             path=settings.SIMPLE_JWT['AUTH_COOKIE_PATH']
-#         )
-#         return response
-# class RefreshCookieTokenView(TokenRefreshView):
-#     permission_classes = (AllowAny,)
-#     def post(self, request, *args, **kwargs):
-#         serializer = self.get_serializer(data={"refresh":request.COOKIES.get('__refresh')})
-#         try:
-#             serializer.is_valid(raise_exception=True)
-#         except TokenError as e:
-#             raise InvalidToken(e.args[0])
 
-#         response = Response(serializer.validated_data, status=status.HTTP_200_OK)  
-#         response.set_cookie(
-#             key=settings.SIMPLE_JWT['AUTH_COOKIE_ACCESS'],
-#             expires=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'],
-#             value=response.data['access'],
-#             # secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
-#             httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
-#             # samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
-#             # domain=settings.ALLOWED_HOSTS[2],
-#             path=settings.SIMPLE_JWT['AUTH_COOKIE_PATH']
-#         )
-#         return response
+class SessionView(APIView):
+    permission_classes = (IsAuthenticated,)
+    @staticmethod
+    def get(request):
+        return JsonResponse({"isAuhenicated": request.user.is_authenticated}, status=status.HTTP_200_OK)
+
+class MeView(APIView):
+    permission_classes = (IsAuthenticated,)
+    @staticmethod
+    def get(request):
+        return JsonResponse({"userinfo": request.user.username}, status=status.HTTP_200_OK)
+
+class AuthenticationView(GenericAPIView):
+    permission_classes = (AllowAny,)
+
+    def _login(request):
+        try:
+            # Check if username and password is provided
+            if request.data["username"] == "" or request.data["password"] == "":
+                return exceptions.ValidationError('Please provide username and password')
+        
+            # Check if user is already logged in
+            if request.user.is_authenticated:
+                return exceptions.ValidationError('You\'re already logged in.')
+            
+            serializer = LoginSerializer(data=request.data)
+            # Check if username and password is valid
+            serializer.is_valid()
+            user = serializer.validated_data
+            # Login user
+            login(request, user)
+            # Return user info
+            return JsonResponse({"userinfo": user}, status=status.HTTP_200_OK)
+        except exceptions.ValidationError as e:
+            return JsonResponse({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+    def _logout(self, request):
+        if not request.user.is_authenticated:
+            return JsonResponse({'detail': 'You\'re not logged in.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        logout(request)
+        return JsonResponse({'detail': 'Successfully logged out.'})
+
+
 class RegisterView(CreateAPIView):
     queryset = User.objects.all()
     permission_classes=(AllowAny,)

@@ -1,15 +1,30 @@
 
-from rest_framework import serializers
+from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.password_validation import validate_password
+from rest_framework import serializers
 from .encryption import Encryption
 from .models import User
-
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'status', 'public_key', 'is_superuser']
         read_only_fields = ['id', 'username', 'status', 'public_key', 'is_superuser']
+
+class LoginSerializer(serializers.Serializer):
+    username_field = get_user_model().USERNAME_FIELD
+    password = serializers.CharField(required=True, max_length=50, write_only=True)
+
+    def __init__(self, *args, **kwargs):
+        super(LoginSerializer, self).__init__(*args, **kwargs)
+        self.fields[self.username_field] = serializers.CharField()
+        
+
+    def validate(self, attrs):
+        user = authenticate(username=attrs['username'], password=attrs['password'])
+        if user is None:
+            raise serializers.ValidationError({'account':"Account does not exist or Password is incorrect"})
+        return attrs
 
 
 class RegisterSerializer(serializers.ModelSerializer):
