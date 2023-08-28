@@ -1,6 +1,7 @@
 
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.models import User
 from rest_framework import serializers
 from .encryption import Encryption
 from .models import User
@@ -24,7 +25,7 @@ class LoginSerializer(serializers.Serializer):
         user = authenticate(username=attrs['username'], password=attrs['password'])
         if user is None:
             raise serializers.ValidationError({'account':"Account does not exist or Password is incorrect"})
-        return attrs
+        return user
 
 
 class RegisterSerializer(serializers.ModelSerializer):

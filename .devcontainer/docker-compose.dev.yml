@@ -44,20 +44,20 @@ services:
       
     depends_on:
       - db
-  frontend_app:
-    container_name: react_app
-    build: 
-      context: ../frontend
-      dockerfile: Dockerfile
-    command: npm run dev
-    volumes:
-      - ../frontend:/usr/src/app/frontend
-    ports:
-      - "80:3000"
-    env_file:
-      - ./.env
-    depends_on:
-      - backend_app
+  # frontend_app:
+  #   container_name: react_app
+  #   build: 
+  #     context: ../frontend
+  #     dockerfile: Dockerfile
+  #   command: npm run dev
+  #   volumes:
+  #     - ../frontend:/usr/src/app/frontend
+  #   ports:
+  #     - "80:3000"
+  #   env_file:
+  #     - ./.env
+  #   depends_on:
+  #     - backend_app
 volumes:
   pgdata:
   redisdata:

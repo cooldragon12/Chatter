@@ -58,9 +58,13 @@ Model of message to send and receive.
 """
 class Message(models.Model):
     encrypted_content = models.TextField()
-    converation = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="messages")
+    conversation = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="messages")
     status = models.CharField(max_length=10, default="sent", choices=[("sent", "sent"), ("received", "received"),("read", "read"), ("unread", "unread")])
     timestamp = models.DateTimeField(auto_now_add=True)
+    
+    def statusChange(self, new_status):
+        self.status = new_status
+        self.save()
     class Meta:
         ordering = ['-timestamp']
 

@@ -15,7 +15,6 @@
 		}
 
 	],
-
 	"settings": {
 		"python.terminal.activateEnvInCurrentTerminal": true,
 		"python.envFile": "${workspaceFolder}/env",
@@ -29,5 +28,9 @@
 		"[python]": {
 			"editor.defaultFormatter": "ms-python.black-formatter"
 		},
+		"files.exclude": {
+			"backend": true,
+			"frontend": true
+		}
 	},
 }

@@ -55,8 +55,13 @@ class UserSerializer(BaseModelSerializer):
 class MessageSerializer(BaseModelSerializer):
     class Meta:
         model = Message
-        fields = ['__all__']
+        fields = '__all__'
         read_only_fields = ['timestamp']
+
+    def validate(self, attrs):
+        if attrs['encrypted_content'] == '':
+            raise serializers.ValidationError({'error':"Message cannot be empty"})
+        return super().validate(attrs)
 
 class RoomSerializer(BaseModelSerializer,UserOperation):
     """General Room Serializer
