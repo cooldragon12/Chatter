@@ -1,10 +1,10 @@
 import axios from 'axios';
-import { URLS } from '../../config';
+import { URL } from '../config';
 export const axiosPrivate = axios.create({
     /**
      * Axios private manages the request and response of authenticated user
      */
-    baseURL:URLS,
+    baseURL:URL,
     timeout:6000,
     headers:{
         'Content-Type': 'application/json',

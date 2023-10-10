@@ -1,7 +1,11 @@
 from django.shortcuts import get_object_or_404
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
-import os
-from .models import Room, User, Message
+from django.contrib.auth import get_user_model
+from .models import Room, Message
+from account.encryption import Encryption
+
+User = get_user_model()
 
 def get_room(roomId):
     room = get_object_or_404(Room, id=roomId)
@@ -61,7 +65,11 @@ class MessageSerializer(BaseModelSerializer):
     def validate(self, attrs):
         if attrs['encrypted_content'] == '':
             raise serializers.ValidationError({'error':"Message cannot be empty"})
-        return super().validate(attrs)
+        # Encryption of the message in the databse
+        attrs['encrypted_content'] = Encryption(privateKey=attrs['conversation'].host.private_key).encryptRSA(attrs['encrypted_content'], attrs['receiver'].public_key)
+        return 
+    
+    
 
 class RoomSerializer(BaseModelSerializer,UserOperation):
     """General Room Serializer
@@ -81,18 +89,14 @@ class RoomSerializer(BaseModelSerializer,UserOperation):
             'messages',
             'members'
         ]
+
+    def validate(self, attrs):
+        if Room.objects.filter(members__pk = attrs['username']).exists():
+            raise serializers.ValidationError({'error':"You've already joined"})
+        try:
+            Room.objects.get(code=attrs['code'])
+        except ObjectDoesNotExist:
+            raise serializers.ValidationError({'error':"Room doesn't exist"})
+        return attrs
     
-# MessageSerializer
 
-
-    # def validate(self, attrs):
-    #     # if Room.objects.filter(members__username = attrs['username']).exists():
-    #     #     raise serializers.ValidationError({'error':"You've already joined"})
-    #     # try:
-    #     #     Room.objects.get(code=attrs['code'])
-    #     # except ObjectDoesNotExist:
-    #     #     raise serializers.ValidationError({'error':"Room doesn't exist"})
-    #     return attrs
-
-        # return attrs
-    

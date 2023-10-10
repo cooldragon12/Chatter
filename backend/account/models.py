@@ -14,8 +14,7 @@ class UserManager(BaseUserManager):
         """
         private_key = Encryption.createPrivateKeyRSA(512)
         serilized_private_key = Encryption(privateKey=private_key)
-        user = self.model(private_key=serilized_private_key.serializePrivateKey()[1], 
-                          public_key=serilized_private_key.serializePublicKey()[1],
+        user = self.model(private_key=serilized_private_key.serializePrivateKey(), public_key=serilized_private_key.serializePublicKey(),
                           **extra_fields)
         user.set_password(password)
         user.save()
@@ -44,7 +43,7 @@ def generate_id(length=16):
 
     while True:
         code = ''.join(random.choices(string.hexdigits, k=length))
-        if User.objects.filter(id=code).count() == 0:
+        if User.objects.filter(id=code).exists():
             break
     return code
 
@@ -72,6 +71,9 @@ class User(AbstractUser):
     # Encryption will be done by public key
     public_key = models.TextField(editable=False, default="")
     # REQUIRED PARAMETER
+
+    user_permissions = None
+    groups = None
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = []
     

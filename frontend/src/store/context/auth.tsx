@@ -1,9 +1,15 @@
+import React, { createContext } from "react"
 
-export type AuthState = {
-    userinfo: {
-        id: string;
-        name: string;
-    }
-    privateCode: string;
-    publicCode: string;
+
+
+export interface IAuthContext{}
+
+export const AuthContext = createContext<IAuthContext>({})
+
+export const AuthProvider = ({children}:{children:React.ReactNode}) =>{
+    return(
+        <AuthContext.Provider value={{}}>
+            {children}
+        </AuthContext.Provider>
+    )
 }

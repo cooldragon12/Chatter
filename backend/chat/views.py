@@ -9,10 +9,11 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import action
 from .serializer import MessageSerializer, RoomSerializer
-from .models import Room,User, Message
+from .models import Room, Message
 from .mixins import JoinRoomMixin, LeaveRoomMixin
+from django.contrib.auth import get_user_model
 
-
+User = get_user_model()
 
 def get_user_rooms(user):
     usern = get_object_or_404(User, username=user)

@@ -5,6 +5,7 @@ from channels.sessions import CookieMiddleware
 from rest_framework_simplejwt.tokens import AccessToken,TokenError
 from django.contrib.auth.models import AnonymousUser
 from channels.db import database_sync_to_async
+
 User = get_user_model()
 
 @database_sync_to_async

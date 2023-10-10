@@ -1,28 +1,11 @@
 import React, { useState } from 'react';
 
-import {LoadingButton} from '../main'
-
-import { useAuthDispatch, useAuthState } from '../store/context';
-import { login } from '../store/dispatcher/login';
-const Container = styled.div`
-    width: 40%;
-    height:30%;
-    box-shadow:20px 20px 86px #424242;
-    display: flex; 
-    flex-direction:column;
-    justify-content: center;
-    align-items:center;
-`
 const Register =(props)=>{
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
 
     const [password, setPassword] = useState('');
     const [password2, setPassword2] = useState('');
-
-    const dispatch = useAuthDispatch();
-    
-    const {loading, errorMessage} = useAuthState();
 
     const usernameHandler = (e)=>{
         setUsername(e.target.value)

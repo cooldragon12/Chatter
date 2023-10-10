@@ -1,20 +1,31 @@
+import {createContext, useReducer} from 'react';
+import { messageReducer } from '../reducers';
+import { roomReducer } from '../reducers/room';
+import { IChatContext, initStateChat, initStateRoom } from '.';
 
-import {createContext, useContext, useReducer} from 'react';
-import { initStateChat, messageReducer } from '../reducer';
 
-export type Message = {
-    id: string;
-    text: string;
-    createdAt: Date;
-    userId: string;
-}
+export const ChatContext = createContext<IChatContext>(
+    {
+        messages:initStateChat,
+        dispatch:()=>{},
+        rooms:initStateRoom,
+        dispatchRoom:()=>{}
+    }
+);
 
-export const ChatContext = createContext();
-const ChatProvider = ()=>{
+const ChatProvider = ({children}:{children:React.ReactNode})=>{
     const [messages, dispatch] = useReducer(messageReducer, initStateChat)
+    const [rooms, dispatchRoom] = useReducer(roomReducer, initStateRoom)
+    
+    
     
     return(
-        <ChatContext.Provider value={{messages, dispatch}}>
+        <ChatContext.Provider value={{
+            messages, 
+            dispatch,
+            rooms,
+            dispatchRoom
+            }}>
             {children}
         </ChatContext.Provider>
     )

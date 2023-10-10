@@ -12,7 +12,7 @@ const ChatTBox = (props: { onClick: () => void, name: string }) => {
         onClick()
     }
     return (
-        <div className="bg-white p-4">
+        <div className=" p-4">
             <div className="  flex justify-center items-center gap-3">
                 <div className="flex bg-primary-100 rounded-full p-2">
                     <input

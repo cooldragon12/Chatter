@@ -4,12 +4,12 @@ export interface GroupTabProps {
     overview:string,
     image:string
 }
-const GroupTab:React.FC<GroupTabProps> = (group)=>{
-    const {name, overview, image} = group;
+const GroupTab:React.FC<GroupTabProps> = (props)=>{
+    const {name, overview} = props;
     return (
         <div className="w-0.9 bg-white flex">
             <div className="w-[52px] flex items-center justify-center padd">
-                <img src={image} alt={name+"-profile"} />
+                {/* <img src={image} alt={name+"-profile"} /> */}
             </div>
             <div className="w-4/5">
                 <h3>{name}</h3>

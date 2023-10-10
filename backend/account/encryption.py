@@ -26,11 +26,13 @@ class Encryption:
             format=serialization.PublicFormat.SubjectPublicKeyInfo,
         )
     def loadSerializedPrivateKey(self, serializedPrivateKey:bytes):
+        """Load private key from serialized private key"""
         return serialization.load_pem_private_key(
             serializedPrivateKey,
             password=None,
         )
     def loadSerializedPublicKey(self, serializedPublicKey:bytes):
+        """Load public key from serialized public key"""
         return serialization.load_pem_public_key(
             serializedPublicKey,
         )

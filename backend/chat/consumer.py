@@ -5,7 +5,9 @@ from rest_framework.exceptions import ValidationError
 from channels.db import database_sync_to_async
 from .serializer import MessageSerializer, UserSerializer
 from .models import Message, Room
-from account.models import User
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 def get_user(user_id):
     return get_object_or_404(User, id=user_id)
@@ -15,7 +17,8 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         self.room_name:str = self.scope['url_route']['kwargs']['room_name']
         self.room_group_name = f'chat-{self.room_name}'
-        # self.user = self.scope['user']
+        self.user = self.scope['user']
+        print(self.user, "is connecting to", self.room_name)
         # check if the room exist
         self.room = await self.get_room(self.room_name)
         # Join room group / More like connecting to the group
@@ -86,17 +89,17 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
     async def ping(self, data):
         await self.send_json({
             'type':'pong',
-            'message':"Connected to "+self.room_name,
+            'message': "Connected to "+self.room_name,
             'status':'delivered'
         })
     # New Message Save to database then back to user ========================
     async def message_new(self, data): # To save in database
         # Parsing the data then send message to group layer
         """Parsing the new messege"""
-        # print("New Message")
+        print("New Message", "from", self.user.username, "to", self.room.name)
         try:
             new_msg = MessageSerializer(data={
-                'user':1,
+                'user': self.user.id,
                 'encrypted_content':data["content"],
                 'conversation':data["room_id"]
             })
@@ -106,7 +109,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             # print("Saving to database")
             await database_sync_to_async(new_msg.save)()
             # print("Saved")
-            # print(new_msg.data)
+            print("Here is the conent",new_msg.data)
             await self.send_json({
                 'type':'message.new',
                 'message':new_msg.data

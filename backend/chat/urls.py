@@ -1,5 +1,5 @@
-from django.urls import path,re_path
-from .views import  RoomView,ping
+from django.urls import re_path
+from .views import  RoomView
 
 
 """ URL Patterns for Backend

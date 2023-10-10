@@ -5,13 +5,16 @@ from sys import exception
 from django.http import JsonResponse
 from rest_framework import status, exceptions
 from rest_framework.views import APIView
-from rest_framework.generics import CreateAPIView, GenericAPIView
+from rest_framework.generics import CreateAPIView, RetrieveAPIView
+from rest_framework.viewsets import  GenericViewSet
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from account import mixins
-from .serializer import LoginSerializer, RegisterSerializer, UserSerializer
-from .models import User
+from .serializer import RegisterSerializer, UserSerializer
+from django.contrib.auth import  get_user_model
 # Create your views here.
+
+User = get_user_model()
 
 class SessionView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -19,13 +22,14 @@ class SessionView(APIView):
     def get(request):
         return JsonResponse({"isAuhenicated": request.user.is_authenticated}, status=status.HTTP_200_OK)
 
-class MeView(APIView):
+class MeView(RetrieveAPIView):
     permission_classes = (IsAuthenticated,)
-    @staticmethod
-    def get(request):
-        return JsonResponse({"userinfo": request.user.username}, status=status.HTTP_200_OK)
+    serializer_class = UserSerializer
 
-class AuthenticationView(mixins.AuthenticationMixins,GenericAPIView):
+    def get_object(self):
+        return self.request.user
+
+class AuthenticationView(mixins.AuthenticationMixins,GenericViewSet):
     permission_classes = (AllowAny,)
 
     def post(self, request):

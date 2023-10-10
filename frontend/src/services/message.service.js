@@ -14,7 +14,6 @@ export const message_retrieve = (dispatch, messagePayload,socket)=>{
     try{
         dispatch({type:types.FETCH_MESSAGES})
         socket.sendMessage(messagePayload)
-        
     }catch (err){
         dispatch({type:types.FETCH_ERROR,error:err.message})
         console.log(err.message)

@@ -1,7 +1,6 @@
 import uuid
 from django.db import models
-from account.models import User
-# from django.utils.translation import ungettext_lazy as _
+from django.contrib.auth import get_user_model
 import random
 import string
 ''' Models 
@@ -9,7 +8,7 @@ Consist:
     Room Model
     User Model
 '''
-
+User = get_user_model()
 def generate_secret_code(length=6):
     """ Generate Secret Code
         
@@ -48,9 +47,10 @@ class Room(models.Model):
     def change_max_users(self, number):
         self.max_users= number
         self.save()
-    @classmethod
-    def get_total_members(self):
-        return self.members.count()
+    # @property
+    # def number_of_members(self):
+    #     return self.members.count()
+    
     
 """ Message Model
 
@@ -58,10 +58,15 @@ Model of message to send and receive.
 """
 class Message(models.Model):
     encrypted_content = models.TextField()
+    """ Encrypted Content"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_messages")
+    """ User who sent the message"""
     conversation = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="messages")
+    """ Conversation where the message is sent"""
     status = models.CharField(max_length=10, default="sent", choices=[("sent", "sent"), ("received", "received"),("read", "read"), ("unread", "unread")])
+    """ Status of the message"""
     timestamp = models.DateTimeField(auto_now_add=True)
-    
+    """ Timestamp of the message"""
     def statusChange(self, new_status):
         self.status = new_status
         self.save()

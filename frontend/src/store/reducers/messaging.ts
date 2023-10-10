@@ -1,21 +1,22 @@
 import { MESSAGE_ACTIONTYPE } from "."
-import { MessageInterface, MessageStatus } from "../context"
 
+import { IMessageState } from "../../types/message";
 
-export const initStateChat = {
-    messages: [],
-    status:"",
-    error: null,
-}
-
-export const messageReducer = (state:{messages:MessageInterface[], status:MessageStatus, error?:{}}, action:MESSAGE_ACTIONTYPE)=>{
+/**
+ * 
+ * @param state 
+ * @param action 
+ * @returns Reducer for message state and action
+ */
+export const messageReducer = (state:IMessageState, action:MESSAGE_ACTIONTYPE)=>{
     switch (action.type){
-        case "MESSAGE_SENDING":
+        case "MESSAGE_SEND":
             state.status = "SENDING";
             state.messages.push(action.payload.message);
+            state.error = null;
             return state;
-        case "MESSAGE_SEND":
-            state.status = "SENT";
+        case "MESSAGE_SENT":
+            state.status = action.payload.status;
             return state;
         case "MESSAGE_ERROR":
             state.status = "ERROR";
@@ -24,9 +25,13 @@ export const messageReducer = (state:{messages:MessageInterface[], status:Messag
         case "MESSAGE_RECEIVE":
             state.status = "RECIEVED";
             state.messages.push(action.payload.message);
+            state.error = null;
             return state;
-        case "MESSAGES_GET":
-            state.status = "RECIEVED"
+        case "MESSAGES_FETCH":
+            state.status = "FETCHING"
+            return state
+        case "MESSAGES_FETCH_SCUCCESS":
+            state.status = "FETCHED"
             state.messages.concat(action.payload.messages)
             return state
         case "MESSAGES_ERROR":

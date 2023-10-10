@@ -1,16 +1,17 @@
 
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.password_validation import validate_password
-from django.contrib.auth.models import User
 from rest_framework import serializers
 from .encryption import Encryption
-from .models import User
+
+User = get_user_model()
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'status', 'public_key', 'is_superuser']
-        read_only_fields = ['id', 'username', 'status', 'public_key', 'is_superuser']
+        fields = ['id', 'username', 'status', 'private_key', 'is_superuser']
+        read_only_fields = ['id', 'username', 'status', 'private_key', 'is_superuser']
 
 class LoginSerializer(serializers.Serializer):
     username_field = get_user_model().USERNAME_FIELD

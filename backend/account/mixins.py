@@ -1,6 +1,6 @@
 from rest_framework import status, exceptions
 from django.http import JsonResponse
-from django.contrib.auth import login as _login, logout as _logout, authenticate
+from django.contrib.auth import login as _login, logout as _logout
 from account.serializer import LoginSerializer
 
 
@@ -22,7 +22,7 @@ class AuthenticationMixins:
             # Login user
             _login(request, user)
             # Return user info
-            print("login success")
+            # print("login success")
             return JsonResponse({"userinfo": serializer.data}, status=status.HTTP_200_OK)
         except exceptions.ValidationError as e:
             return JsonResponse({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

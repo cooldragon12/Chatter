@@ -1,7 +1,7 @@
-import { Link } from "react-router-dom"
+import { Link, Outlet } from "react-router-dom"
 import { Route } from "../../pages"
 
-export default function AppShellLayout({children, routes}:{children:React.ReactNode, routes:Route[]}){
+export default function AppShellLayout({routes}:{ routes:Route[]}){
     return (
         <> 
             {/* Nav Sidebar */}
@@ -28,7 +28,7 @@ export default function AppShellLayout({children, routes}:{children:React.ReactN
                     </div>
                 </header>
                 {/* Main Content */}
-                {children}
+                <Outlet/>
             </div>
         </>
     )
